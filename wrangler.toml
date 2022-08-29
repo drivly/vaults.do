@@ -1,0 +1,12 @@
+name = "vaults-do"
+account_id = "b6641681fe423910342b9ffa1364c76d"
+route = { pattern = "*vaults.do/*", zone_id = "5bb569e35ab1586725a3621f4f99c652" }
+main = "worker.js"
+compatibility_date = "2022-08-26"
+
+[durable_objects]
+bindings = [{name = "VAULT", class_name = "Vault"}]
+
+[[migrations]]
+tag = "v1" # Should be unique for each entry
+new_classes = ["Vault"]
