@@ -18,7 +18,7 @@ export class Vault {
     const { pathname, search, searchParams } = new URL(url)
     const [_, instance, operation] = pathname.split('/')
     const id = req.headers.get('cf-ray') + '-' + req.cf.colo
-    const ts = Date.UTC()
+    const ts = Date.now()
 
     const retval = {
       id,
