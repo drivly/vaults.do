@@ -19,13 +19,14 @@ export class Vault {
     const [_, instance, operation] = pathname.split('/')
     const id = req.headers.get('cf-ray') + '-' + req.cf.colo
     const ts = Date.now()
+    const query = Object.fromEntries(searchParams)
 
     const retval = {
       id,
       doId: this.state.id.toString(),
       ts,
       search,
-      searchParams,
+      query,
       instance,
       operation,
     }
