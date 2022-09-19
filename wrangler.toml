@@ -4,6 +4,10 @@ route = { pattern = "*vaults.do/*", zone_id = "5bb569e35ab1586725a3621f4f99c652"
 main = "worker.js"
 compatibility_date = "2022-08-26"
 
+services = [
+  { binding = "CTX", service = "ctx-do", environment = "production" }
+]
+
 [durable_objects]
 bindings = [{name = "VAULT", class_name = "Vault"}]
 

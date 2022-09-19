@@ -1,8 +1,12 @@
 export default {
-  fetch: (req, env) => {
-    const { hostname, pathname } = new URL(req.url)
-    const [_, instance] = pathname.split('/')
-    const id = env.VAULT.idFromName(hostname + instance)
+  fetch: async (req, env) => {
+    const { user, origin, pathname, url, hostname } = await env.CTX.fetch(req).then(res => res.json())
+    if (!user.authenticated) return Response.redirect(origin + "/login?redirect_uri=" + url)
+    const [instance, operation] = pathname.slice(1).split('/')
+    req.user = user
+    req.instance = instance
+    req.operation = operation
+    const id = env.VAULT.idFromName(hostname + instance + user.id.toString())
     const stub = env.VAULT.get(id)
     return stub.fetch(req)
   },
@@ -11,24 +15,27 @@ export default {
 export class Vault {
   constructor(state, env) {
     this.state = state
+    this.env = env
   }
 
   async fetch(req) {
-    const { url } = req
-    const { pathname, search, searchParams } = new URL(url)
-    const [_, instance, operation] = pathname.split('/')
-    const id = req.headers.get('cf-ray') + '-' + req.cf.colo
-    const ts = Date.now()
-    const query = Object.fromEntries(searchParams)
-
     const retval = {
-      id,
-      doId: this.state.id.toString(),
-      ts,
-      search,
-      query,
-      instance,
-      operation,
+      api: {
+        icon: '🏰',
+        name: 'vaults.do',
+        description: 'A Durable Object for managing API credentials',
+        url: 'https://vaults.do',
+        endpoints: {
+          vault: 'https://vaults.do/:key',
+        },
+        memberOf: 'https://apis.do/core',
+        login: origin + '/login',
+        logout: origin + '/logout',
+        repo: 'https://github.com/drivly/vaults.do',
+      },
+      instance: req.instance,
+      operation: req.operation,
+      user: req.user,
     }
 
     return new Response(JSON.stringify(retval, null, 2), { headers: { 'content-type': 'application/json' } })
