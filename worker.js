@@ -3,11 +3,16 @@ export default {
     const { user, origin, pathname, url, hostname } = await env.CTX.fetch(req).then(res => res.json())
     if (!user.authenticated) return Response.redirect(origin + "/login?redirect_uri=" + url)
     const [instance, operation] = pathname.slice(1).split('/')
-    req.headers.set('context', JSON.stringify({
-      user,
-      instance,
-      operation,
-    }))
+
+    req = new Request(req.url, {
+      method: req.method, headers: {
+        ...Object.fromEntries(req.headers), 'context': JSON.stringify({
+          user,
+          instance,
+          operation,
+        })
+      }
+    })
     const id = env.VAULT.idFromName(hostname + instance + user.profile.id.toString())
     const stub = env.VAULT.get(id)
     return stub.fetch(req)
