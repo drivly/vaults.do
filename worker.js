@@ -19,6 +19,7 @@ export class Vault {
   }
 
   async fetch(req) {
+    const origin = new URL(req.url).origin
     const retval = {
       api: {
         icon: '🏰',
