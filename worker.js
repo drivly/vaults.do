@@ -3,9 +3,11 @@ export default {
     const { user, origin, pathname, url, hostname } = await env.CTX.fetch(req).then(res => res.json())
     if (!user.authenticated) return Response.redirect(origin + "/login?redirect_uri=" + url)
     const [instance, operation] = pathname.slice(1).split('/')
-    req.user = user
-    req.instance = instance
-    req.operation = operation
+    req.headers.set('context', JSON.stringify({
+      user,
+      instance,
+      operation,
+    }))
     const id = env.VAULT.idFromName(hostname + instance + user.profile.id.toString())
     const stub = env.VAULT.get(id)
     return stub.fetch(req)
@@ -20,6 +22,7 @@ export class Vault {
 
   async fetch(req) {
     const origin = new URL(req.url).origin
+    const { user, instance, operation } = JSON.parse(req.headers.get('context'))
     const retval = {
       api: {
         icon: '🏰',
@@ -34,9 +37,9 @@ export class Vault {
         logout: origin + '/logout',
         repo: 'https://github.com/drivly/vaults.do',
       },
-      instance: req.instance,
-      operation: req.operation,
-      user: req.user,
+      instance,
+      operation,
+      user,
     }
 
     return new Response(JSON.stringify(retval, null, 2), { headers: { 'content-type': 'application/json' } })
