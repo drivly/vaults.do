@@ -6,7 +6,7 @@ export default {
     req.user = user
     req.instance = instance
     req.operation = operation
-    const id = env.VAULT.idFromName(hostname + instance + user.id.toString())
+    const id = env.VAULT.idFromName(hostname + instance + user.profile.id.toString())
     const stub = env.VAULT.get(id)
     return stub.fetch(req)
   },
