@@ -1,8 +1,9 @@
 export default {
   fetch: async (req, env) => {
-    const privateKey = await crypto.subtle.importKey("jwk", env.JWK, { name: "RSA-OAEP", hash: "SHA-512" }, true, ["decrypt"])
+    const jwk = JSON.parse(env.JWK)
+    const privateKey = await crypto.subtle.importKey("jwk", jwk, { name: "RSA-OAEP", hash: "SHA-512" }, true, ["decrypt"])
     const publicKey = await crypto.subtle.importKey("jwk", {
-      key_ops: ["encrypt"], ext: env.JWK.ext, kty: env.JWK.kty, n: env.JWK.n, e: env.JWK.e, alg: env.JWK.alg
+      key_ops: ["encrypt"], ext: jwk.ext, kty: jwk.kty, n: jwk.n, e: jwk.e, alg: jwk.alg
     }, { name: "RSA-OAEP", hash: "SHA-512" }, true, ["encrypt"])
     const { user, origin, pathname, url, hostname, query } = await env.CTX.fetch(req).then(res => res.json())
     if (!user.authenticated) return Response.redirect(origin + "/login?redirect_uri=" + url)
