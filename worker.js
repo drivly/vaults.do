@@ -48,7 +48,8 @@ export class Vault {
   }
 
   async fetch(req) {
-    await req.json().then(values => Promise.all(Object.keys(values).map(k => this.state.storage.put(k, values[k]))))
-    return new Response(JSON.stringify(Object.fromEntries(await this.state.storage.list()) || []))
+    const values = await req.json()
+    await Promise.all(Object.keys(values).map(k => this.state.storage.put(k, values[k])))
+    return new Response(JSON.stringify({ ...Object.fromEntries(await this.state.storage.list()), ...values } || {}))
   }
 }
