@@ -11,13 +11,11 @@ export default {
     const keys = query.length && await Promise.all(Object.entries(query)
       .filter(key => key !== "apikey")
       .map(async (key, value) => { key, await crypto.subtle.encrypt({ name: "RSA-OAEP" }, publicKey, encoder.encode(value)) })) || []
-    console.log({ keys })
-    const values = keys.length && Object.fromEntries(keys)
-    console.log({ values })
+    const values = keys.length && Object.fromEntries(keys) || {}
     const id = env.VAULT.idFromName(hostname + pathname + user.profile.id.toString())
     const stub = env.VAULT.get(id)
     const decoder = new TextDecoder()
-    let vault = await stub.fetch(new Request(url, { body: values && JSON.stringify(values), method: 'POST' })).then(JSON.parse)
+    let vault = await stub.fetch(new Request(url, { body: values && JSON.stringify(values), method: 'POST' })).then(res => res.json()).then(JSON.parse)
     console.log({ vault })
     let secrets = await Promise.all(Object.entries(vault).map(async (k, v) => ({ k, v: decoder.decode(await crypto.subtle.decrypt({ name: "RSA-OAEP" }, privateKey, v)) })))
     console.log({ secrets })
@@ -50,13 +48,7 @@ export class Vault {
   }
 
   async fetch(req) {
-    const values = await req.json()
-    console.log({ values })
-    const keys = Object.keys(values)
-    console.log({ keys })
-    await Promise.all(keys.map(k => this.state.storage.put(k, values[k])))
-    const vault = Object.fromEntries(await this.state.storage.list())
-    console.log({ vault })
-    return new Response(JSON.stringify(vault || []))
+    await req.json().then(values => Promise.all(Object.keys(values).map(k => this.state.storage.put(k, values[k]))))
+    return new Response(JSON.stringify(Object.fromEntries(await this.state.storage.list()) || []))
   }
 }
