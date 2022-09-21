@@ -8,16 +8,20 @@ export default {
     const { user, origin, pathname, url, hostname, query } = await env.CTX.fetch(req).then(res => res.json())
     if (!user.authenticated) return Response.redirect(origin + "/login?redirect_uri=" + url)
     const encoder = new TextEncoder()
-    const keys = query.length && await Promise.all(Object.entries(query)
-      .filter(key => key !== "apikey")
-      .map(async (key, value) => { key, await crypto.subtle.encrypt({ name: "RSA-OAEP" }, publicKey, encoder.encode(value)) })) || []
-    const values = keys.length && Object.fromEntries(keys) || {}
+    let entries = Object.entries(query).filter((k) => k !== "apikey")
+    const values = {}
+    for (let index = 0; index < entries.length; index++) {
+      values[entries[index][0]] = [...new Uint8Array(await crypto.subtle.encrypt({ name: "RSA-OAEP" }, publicKey, encoder.encode(entries[index][1])))]
+    }
     const id = env.VAULT.idFromName(hostname + pathname + user.profile.id.toString())
     const stub = env.VAULT.get(id)
     const decoder = new TextDecoder()
-    let vault = await stub.fetch(new Request(url, { body: values && JSON.stringify(values), method: 'POST' })).then(res => res.json())
-    let secrets = await Promise.all(Object.entries(vault).map(async (k, v) => ({ k, v: decoder.decode(await crypto.subtle.decrypt({ name: "RSA-OAEP" }, privateKey, v)) })))
-    vault = Object.fromEntries(secrets)
+    let encrypted = await stub.fetch(new Request(url, { body: values && JSON.stringify(values), method: 'POST' })).then(res => res.json())
+    let vault = {}
+    entries = Object.entries(encrypted)
+    for (let index = 0; index < entries.length; index++) {
+      vault[entries[index][0]] = decoder.decode(await crypto.subtle.decrypt({ name: "RSA-OAEP" }, privateKey, new Uint8Array(entries[index][1])))
+    }
     const retval = {
       api: {
         icon: '🏰',
