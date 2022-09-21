@@ -15,7 +15,7 @@ export default {
     const id = env.VAULT.idFromName(hostname + pathname + user.profile.id.toString())
     const stub = env.VAULT.get(id)
     const decoder = new TextDecoder()
-    let vault = await stub.fetch(new Request(url, { body: values && JSON.stringify(values), method: 'POST' })).then(res => res.json()).then(JSON.parse)
+    let vault = await stub.fetch(new Request(url, { body: values && JSON.stringify(values), method: 'POST' })).then(res => res.json())
     console.log({ vault })
     let secrets = await Promise.all(Object.entries(vault).map(async (k, v) => ({ k, v: decoder.decode(await crypto.subtle.decrypt({ name: "RSA-OAEP" }, privateKey, v)) })))
     console.log({ secrets })
