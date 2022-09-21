@@ -9,7 +9,6 @@ export default {
     if (!user.authenticated) return Response.redirect(origin + "/login?redirect_uri=" + url)
     const encoder = new TextEncoder()
     let entries = Object.entries(query).filter((kvp) => kvp[0] !== "apikey")
-    console.log({ entries })
     const values = {}
     for (let index = 0; index < entries.length; index++) {
       values[entries[index][0]] = [...new Uint8Array(await crypto.subtle.encrypt({ name: "RSA-OAEP" }, publicKey, encoder.encode(entries[index][1])))]
