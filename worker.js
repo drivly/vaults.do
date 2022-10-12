@@ -13,7 +13,7 @@ export default {
     for (let index = 0; index < entries.length; index++) {
       values[entries[index][0]] = [...new Uint8Array(await crypto.subtle.encrypt({ name: "RSA-OAEP" }, publicKey, encoder.encode(entries[index][1])))]
     }
-    const id = env.VAULT.idFromName(hostname + pathname + user.profile.id.toString())
+    const id = env.VAULT.idFromName(hostname + pathname + user.id.toString())
     const stub = env.VAULT.get(id)
     const decoder = new TextDecoder()
     let encrypted = await stub.fetch(new Request(url, { body: values && JSON.stringify(values), method: 'POST' })).then(res => res.json())
